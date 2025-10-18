@@ -1,1 +1,2 @@
 sqlmodel==0.0.21
+prometheus-fastapi-instrumentator==6.1.0
