@@ -33,3 +33,4 @@ Thumbs.db
 # ---- Misc ---
 *.swp
 *.swo
+backend/data/*.db
