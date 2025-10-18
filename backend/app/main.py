@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends
-from fastapi.middleware.cores import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import Dict, Any, Generator
@@ -10,7 +10,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*", allow_credentioals=True,
                    allow_methods=["*"], allow_headers=["*"]])
 
 # --- DB ----
-engine = create_engine("sqlite://medaka.db", echo=False)
+engine = create_engine("sqlite:///data/medaka.db", echo=False) # ← /app/data に保存される
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as s:
         yield s
@@ -21,6 +21,12 @@ class Observation(SQLModel, table=True):
     fps: float
     fish_count: int
     notes: str | None = None
+class FoodDrop(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    ts: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    x: int
+    y: int
+
 
 @app.on_event("startup")
 def on_startup():
@@ -51,8 +57,15 @@ def add_obs(payload: ObservationIn, s: Session = Depends(get_session)):
     s.commit()
     s.refresh(obs)
     return {"id": obs.id}
-
 @app.get("/events/oservation")
 def list_obs(limit: int = 50, s: Session = Depends(get_session)):
     rows = s.exec(select(Observation).order_by(Observation.id.desc()).limit(limit).all)
     return rows
+
+@app.post("/events/food")
+def add_food(p: dict, s: Session = Depends(get_session)):
+    fd = FoodDrop(x=int(p["x"]), y=int(p["y"]))
+    s.add(fd); s.commit(); s.refresh(fd); return {"id": fd.id}
+@app.get("/events/food")
+def list_food(limit: int = 100, s: Session = Depends(get_session)):
+    return s.exec(select(FoodDrop).order_by(FoodDrop.id.desc()).limit(limit)).all()
