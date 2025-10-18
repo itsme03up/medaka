@@ -7,8 +7,22 @@ services:
       - "${API_PORT:-8000}:8000"
     volumes:
       - ./backend/data:/app/data
+      - medaka_db:/app/data  # ← SQLiteの保存先を永続化
     restart: unless-stopped
-
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
   web:
     build:
       context: .
@@ -20,3 +34,6 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+
+volumes:
+    medaka_db:
