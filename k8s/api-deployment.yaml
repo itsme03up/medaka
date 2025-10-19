@@ -1,38 +1,18 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
+  name: api
+  labels:
+    io.kompose.service: api
   annotations:
     kompose.cmd: kompose convert -f docker-compose.yml -o k8s/
     kompose.version: 1.37.0 (HEAD)
-  labels:
-    io.kompose.service: api
-  name: api
 spec:
-  replicas: 1
+  type: NodePort
   selector:
-    matchLabels:
-      io.kompose.service: api
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      annotations:
-        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/
-        kompose.version: 1.37.0 (HEAD)
-      labels:
-        io.kompose.service: api
-    spec:
-      containers:
-        - image: api
-          name: api
-          ports:
-            - containerPort: 8000
-              protocol: TCP
-          volumeMounts:
-            - mountPath: /app/data
-              name: medaka-db
-      restartPolicy: Always
-      volumes:
-        - name: medaka-db
-          persistentVolumeClaim:
-            claimName: medaka-db
+    io.kompose.service: api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      nodePort: 30800
