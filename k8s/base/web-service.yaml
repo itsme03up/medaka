@@ -3,16 +3,12 @@ kind: Service
 metadata:
   name: web
   labels:
-    io.kompose.service: web
-  annotations:
-    kompose.cmd: kompose convert -f docker-compose.yml -o k8s/
-    kompose.version: 1.37.0 (HEAD)
+    app: web
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
-    io.kompose.service: web
+    app: web
   ports:
     - name: http
-      port: 80         # クラスタ内の公開ポート
-      targetPort: 80   # Pod(nginx) のポート
-      nodePort: 30080  # ローカルからの入口（固定）
+      port: 80
+      targetPort: 80
