@@ -1,0 +1,7 @@
+// .vscode/settings.json
+{
+  "terminal.integrated.defaultLocation": "editor",
+  "terminal.integrated.tabs.enabled": true,
+  "task.quickOpen.history": 15,
+  "task.autoDetect": "off"
+}

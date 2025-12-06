@@ -1,0 +1,80 @@
+// .vscode/tasks.json
+{
+  "version": "2.0.0",
+  "tasks": [
+    // 🐳 Docker Compose（起動＆ログ追跡）
+    {
+      "label": "docker: up",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "up", "--build", "-d"],
+      "presentation": { "reveal": "always", "panel": "new", "group": "medaka", "focus": false },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: logs",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "logs", "-f", "--tail=200"],
+      "presentation": { "reveal": "always", "panel": "new", "group": "medaka", "focus": false },
+      "problemMatcher": []
+    },
+
+    // 🐍 Backend（Uvicornホットリロード）
+    {
+      "label": "backend: dev",
+      "type": "shell",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "command": "bash",
+      "args": ["-lc", "source ../.venv/bin/activate 2>/dev/null || true; uvicorn app.main:app --reload --port 8000"],
+      "presentation": { "reveal": "always", "panel": "new", "group": "medaka", "focus": false },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "python",
+        "pattern": [{ "regexp": "." }],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "INFO:     Uvicorn running on",
+          "endsPattern": "Application startup complete."
+        }
+      }
+    },
+
+    // 🌐 Frontend（Vite）
+    {
+      "label": "frontend: dev",
+      "type": "shell",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "command": "npm",
+      "args": ["run", "dev"],
+      "presentation": { "reveal": "always", "panel": "new", "group": "medaka", "focus": false },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": [{ "regexp": "." }],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE v",
+          "endsPattern": "Local: *http://"
+        }
+      }
+    },
+
+    // 📊 Grafana（必要ならポートフォワード／NodePortに応じて調整可）
+    {
+      "label": "grafana: open",
+      "type": "shell",
+      "command": "open http://localhost:3000",
+      "presentation": { "reveal": "silent", "panel": "dedicated", "group": "medaka" },
+      "problemMatcher": []
+    },
+
+    // 🧰 まとめ起動（タスク連携）
+    {
+      "label": "dev: all",
+      "dependsOn": ["docker: up", "docker: logs", "backend: dev", "frontend: dev"],
+      "dependsOrder": "sequence",
+      "runOptions": { "runOn": "folderOpen" } // ← フォルダを開いたら自動起動
+    }
+  ]
+}

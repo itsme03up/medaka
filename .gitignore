@@ -1,36 +1,7 @@
-# --- Node / VIte ---
-node_modules/
-dist/
-*.log
-npm-debug.log*
-yarn-debug*
-pnpm-debug.log*
-
-# --- Python / FastAPI ---
+*.pyc
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.egg-info/
-.venv/
-venv/
-.env
-.env.*.local
-
-# --- Docker / Compose ---
-*.pid
-*.sock
-.volumes/
-tmp/
-logs/
-
-# --- OS / VSCode ---
+db.sqlite3
+media/
 .DS_Store
-Thumbs.db
-.vscode/
-.idea/
-
-# ---- Misc ---
-*.swp
-*.swo
-backend/data/*.db
+.env
+venv/

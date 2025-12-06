@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; text-align: center; padding-top: 3rem;">
+    <div class="card">
+        <h2 style="color: var(--danger-color);">Confirm Deletion</h2>
+        <p>Are you sure you want to delete the article "<strong>{{ article.title }}</strong>"?</p>
+        <p>This action cannot be undone.</p>
+
+        <form method="post" style="margin-top: 2rem;">
+            {% csrf_token %}
+            <a href="{% url 'dashboard' %}" class="btn" style="background-color: #444; color: #fff; margin-right: 1rem;">Cancel</a>
+            <button type="submit" class="btn btn-danger" style="border: none; cursor: pointer;">Yes, Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

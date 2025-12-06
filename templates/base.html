@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infra Dashboard</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1><a href="{% url 'dashboard' %}">InfraOps Dashboard</a></h1>
+        <nav style="display: flex; align-items: center; gap: 1rem;">
+            <a href="{% url 'dashboard' %}" style="color: var(--secondary-color); text-decoration: none; font-weight: 600;">Dashboard</a>
+            <a href="{% url 'article_list' %}" style="color: var(--secondary-color); text-decoration: none; font-weight: 600;">Ideas</a>
+
+            {% if user.is_authenticated %}
+                <span style="margin-left: 1rem;">Welcome, {{ user.username }}</span>
+                <a href="/admin/" class="btn" style="margin: 0;">Admin</a>
+            {% else %}
+                <a href="/admin/login/" class="btn" style="margin: 0;">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p style="text-align: center; margin-top: 3rem; color: #666;">&copy; 2024 InfraOps Educational Demo</p>
+    </footer>
+</body>
+</html>

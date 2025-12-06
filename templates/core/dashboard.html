@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-top-section">
+    <!-- Live Tank Feed -->
+    <div class="tank-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2>Live Tank Feed</h2>
+            <span id="hud" style="font-family: monospace; color: var(--secondary-color);">Status: ONLINE</span>
+        </div>
+        <div class="tank-container">
+            <canvas id="tank"></canvas>
+            <div class="tank-overlay">Click to feed</div>
+        </div>
+    </div>
+
+    <!-- Telemetry -->
+    <div class="metrics-panel">
+        <h2>System Telemetry</h2>
+        <div class="chart-container-small">
+            <canvas id="cpuChart"></canvas>
+        </div>
+        <div class="chart-container-small">
+            <canvas id="memoryChart"></canvas>
+        </div>
+        <div class="chart-container-small">
+            <canvas id="requestsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'tank.js' %}"></script>
+
+<div class="ideas-section">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Infrastructure Ideas & Incidents</h2>
+        {% if user.is_staff %}
+            <a href="/admin/articles/article/add/" class="btn">Add New Idea</a>
+        {% endif %}
+    </div>
+
+    <div class="card-grid">
+        {% for article in articles %}
+            <div class="card">
+                <h3>{{ article.title }}</h3>
+                <p>{{ article.content|truncatewords:20 }}</p>
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'article_detail' article.id %}" class="btn" style="background-color: transparent; border: 1px solid var(--secondary-color); color: var(--secondary-color);">Read More</a>
+
+                    {% if user.is_staff %}
+                        <a href="{% url 'article_delete' article.id %}" class="btn btn-danger" style="margin-left: 0.5rem;">Delete</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p>No ideas posted yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: '#e0e0e0' }
+            }
+        },
+        scales: {
+            y: {
+                grid: { color: '#333' },
+                ticks: { color: '#aaa' }
+            },
+            x: {
+                grid: { color: '#333' },
+                ticks: { color: '#aaa' }
+            }
+        }
+    };
+
+    // CPU Chart
+    new Chart(document.getElementById('cpuChart'), {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 20}, (_, i) => i),
+            datasets: [{
+                label: 'CPU Usage %',
+                data: {{ cpu_data|safe }},
+                borderColor: '#bb86fc',
+                backgroundColor: 'rgba(187, 134, 252, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Memory Chart
+    new Chart(document.getElementById('memoryChart'), {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 20}, (_, i) => i),
+            datasets: [{
+                label: 'Memory Usage %',
+                data: {{ memory_data|safe }},
+                borderColor: '#03dac6',
+                backgroundColor: 'rgba(3, 218, 198, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Requests Chart
+    new Chart(document.getElementById('requestsChart'), {
+        type: 'bar',
+        data: {
+            labels: Array.from({length: 20}, (_, i) => i),
+            datasets: [{
+                label: 'Requests / sec',
+                data: {{ requests_data|safe }},
+                backgroundColor: '#cf6679',
+            }]
+        },
+        options: commonOptions
+    });
+</script>
+{% endblock %}
