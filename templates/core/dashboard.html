@@ -65,31 +65,31 @@
         maintainAspectRatio: false,
         plugins: {
             legend: {
-                labels: { color: '#e0e0e0' }
+                labels: { color: '#000000' }  // Black text for readability
             }
         },
         scales: {
             y: {
-                grid: { color: '#333' },
-                ticks: { color: '#aaa' }
+                grid: { color: '#9E9D24' },  // Strong olive grid
+                ticks: { color: '#000000' }  // Black ticks
             },
             x: {
-                grid: { color: '#333' },
-                ticks: { color: '#aaa' }
+                grid: { color: '#9E9D24' },
+                ticks: { color: '#000000' }
             }
         }
     };
 
     // CPU Chart
-    new Chart(document.getElementById('cpuChart'), {
+            const cpuChart = new Chart(document.getElementById('cpuChart'), {
         type: 'line',
         data: {
             labels: Array.from({length: 20}, (_, i) => i),
             datasets: [{
                 label: 'CPU Usage %',
                 data: {{ cpu_data|safe }},
-                borderColor: '#bb86fc',
-                backgroundColor: 'rgba(187, 134, 252, 0.1)',
+            borderColor: '#F57C00',  // Deep orange
+            backgroundColor: 'rgba(245, 124, 0, 0.2)',
                 fill: true,
                 tension: 0.4
             }]
@@ -98,15 +98,15 @@
     });
 
     // Memory Chart
-    new Chart(document.getElementById('memoryChart'), {
+            const memoryChart = new Chart(document.getElementById('memoryChart'), {
         type: 'line',
         data: {
             labels: Array.from({length: 20}, (_, i) => i),
             datasets: [{
                 label: 'Memory Usage %',
                 data: {{ memory_data|safe }},
-                borderColor: '#03dac6',
-                backgroundColor: 'rgba(3, 218, 198, 0.1)',
+            borderColor: '#827717',  // Dark olive
+            backgroundColor: 'rgba(130, 119, 23, 0.2)',
                 fill: true,
                 tension: 0.4
             }]
@@ -115,17 +115,73 @@
     });
 
     // Requests Chart
-    new Chart(document.getElementById('requestsChart'), {
+                const requestsChart = new Chart(document.getElementById('requestsChart'), {
         type: 'bar',
         data: {
             labels: Array.from({length: 20}, (_, i) => i),
             datasets: [{
                 label: 'Requests / sec',
                 data: {{ requests_data|safe }},
-                backgroundColor: '#cf6679',
+                backgroundColor: '#F9A825',  // Dark yellow
             }]
         },
         options: commonOptions
     });
+
+    // Listen for fish feeding events and update charts
+    let feedCount = 0;
+    window.addEventListener('fishFed', (e) => {
+        feedCount++;
+
+        // Spike CPU when feeding (simulating activity)
+        const cpuData = cpuChart.data.datasets[0].data;
+        cpuData.shift();
+        cpuData.push(Math.min(95, 40 + feedCount * 5 + Math.random() * 20));
+        cpuChart.update('none'); // Animate smoothly
+
+        // Increase memory slightly
+        const memData = memoryChart.data.datasets[0].data;
+        memData.shift();
+        memData.push(Math.min(90, 50 + feedCount * 2 + Math.random() * 10));
+        memoryChart.update('none');
+
+        // Spike requests (fish are eating!)
+        const reqData = requestsChart.data.datasets[0].data;
+        reqData.shift();
+        reqData.push(Math.floor(10 + feedCount * 3 + Math.random() * 15));
+        requestsChart.update('none');
+
+        // Update HUD
+        const hud = document.getElementById('hud');
+        if (hud) {
+            hud.textContent = `Status: 🍽️ FEEDING #${feedCount}`;
+            hud.style.color = '#F57C00';
+            setTimeout(() => {
+                hud.textContent = 'Status: ONLINE';
+                hud.style.color = 'var(--secondary-color)';
+            }, 2000);
+        }
+    });
+
+    // Continuous chart updates for real-time feel
+    setInterval(() => {
+        // CPU update
+        const cpuData = cpuChart.data.datasets[0].data;
+        cpuData.shift();
+        cpuData.push(Math.min(90, Math.max(30, cpuData[cpuData.length - 1] + (Math.random() - 0.5) * 10)));
+        cpuChart.update('none');
+
+        // Memory update
+        const memData = memoryChart.data.datasets[0].data;
+        memData.shift();
+        memData.push(Math.min(85, Math.max(40, memData[memData.length - 1] + (Math.random() - 0.5) * 5)));
+        memoryChart.update('none');
+
+        // Requests update
+        const reqData = requestsChart.data.datasets[0].data;
+        reqData.shift();
+        reqData.push(Math.floor(Math.max(1, reqData[reqData.length - 1] + (Math.random() - 0.5) * 8)));
+        requestsChart.update('none');
+    }, 1500); // Update every 1.5 seconds
 </script>
 {% endblock %}

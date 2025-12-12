@@ -33,6 +33,7 @@
         size: 6 + rand(8), hue: 180 + randsym(40), rot: rand(Math.PI*2),
     }));
 
+
     // Baits
     const baits = [];
     const BAIT_RADIUS = 140;
@@ -40,13 +41,82 @@
     const BAIT_DECAY = 0.995;
     const ripples = [];
 
-    // Click to drop bait
+    // Bubbles - with more variation
+    const bubbles = [];
+    function createBubble() {
+        const size = Math.random();
+        return {
+            x: rand(W),
+            y: H + 10,
+            r: size < 0.6 ? 1.5 + rand(3) : size < 0.9 ? 4 + rand(4) : 6 + rand(6), // Small, medium, or large
+            vy: -0.3 - rand(1.2),
+            wobble: rand(Math.PI * 2),
+            wobbleSpeed: 0.015 + rand(0.04),
+            opacity: 0.4 + rand(0.4)
+        };
+    }
+    // Initial bubbles - more bubbles!
+    for (let i = 0; i < 25; i++) {
+        const b = createBubble();
+        b.y = rand(H);
+        bubbles.push(b);
+    }
+
+    // Seaweed - lush aquarium plants
+    const seaweeds = [];
+    // Background layer - taller plants
+    for (let i = 0; i < 8; i++) {
+        seaweeds.push({
+            x: (W / 9) * i + rand(30),
+            height: 60 + rand(80),
+            sway: rand(Math.PI * 2),
+            swaySpeed: 0.012 + rand(0.008),
+            segments: 10,
+            width: 2.5,
+            color: 'rgba(46, 125, 50, 0.4)', // Darker, background
+            type: 'tall'
+        });
+    }
+    // Mid layer - medium plants with leaves
+    for (let i = 0; i < 12; i++) {
+        seaweeds.push({
+            x: rand(W),
+            height: 40 + rand(50),
+            sway: rand(Math.PI * 2),
+            swaySpeed: 0.015 + rand(0.01),
+            segments: 8,
+            width: 2,
+            color: 'rgba(56, 142, 60, 0.7)', // Mid green
+            type: Math.random() < 0.5 ? 'wavy' : 'feathery'
+        });
+    }
+    // Foreground - short bushy plants
+    for (let i = 0; i < 6; i++) {
+        seaweeds.push({
+            x: 30 + (W / 7) * i + rand(20),
+            height: 20 + rand(35),
+            sway: rand(Math.PI * 2),
+            swaySpeed: 0.02 + rand(0.015),
+            segments: 6,
+            width: 3,
+            color: 'rgba(102, 187, 106, 0.85)', // Bright green, foreground
+            type: 'bushy'
+        });
+    }
+
+
+    // Click to drop bait and trigger metrics
     canvas.addEventListener("click", (e) => {
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left);
         const y = (e.clientY - rect.top);
         baits.push({ x, y, strength: 1.0, decay: BAIT_DECAY });
         ripples.push({ x, y, r: 2, max: 80, alpha: 0.8, grow: 1.6, fade: 0.015 });
+
+        // Dispatch event for charts to react
+        window.dispatchEvent(new CustomEvent('fishFed', {
+            detail: { fishCount: FISH_COUNT, baitCount: baits.length }
+        }));
     });
 
     function step(dt){
@@ -97,6 +167,26 @@
             if (baits[i].strength < 0.15) baits.splice(i,1);
         }
 
+        // Bubbles
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+            const b = bubbles[i];
+            b.wobble += b.wobbleSpeed * dt;
+            b.x += Math.sin(b.wobble) * 0.5;
+            b.y += b.vy * dt;
+            if (b.y + b.r < 0) {
+                bubbles.splice(i, 1);
+            }
+        }
+        // Add new bubbles randomly
+        if (Math.random() < 0.02) {
+            bubbles.push(createBubble());
+        }
+
+        // Seaweed sway
+        for (const s of seaweeds) {
+            s.sway += s.swaySpeed * dt;
+        }
+
         // Movement & Boundaries
         for (const f of fishes){
             f.vx += randsym(0.05); f.vy += randsym(0.05);
@@ -113,10 +203,92 @@
     }
 
     function render(){
-        // Background
+        // Background - realistic water gradient
         const g = ctx.createLinearGradient(0,0,0,H);
-        g.addColorStop(0,"#0b1724"); g.addColorStop(1,"#0e2440");
+        g.addColorStop(0,"#4FC3F7");  // Light aqua blue (top)
+        g.addColorStop(0.5,"#0288D1"); // Deep water blue (middle)
+        g.addColorStop(1,"#01579B");  // Dark ocean blue (bottom)
         ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        ctx.restore();
+
+        // Seaweed - render by type with layered depth
+        ctx.save();
+        ctx.lineCap = 'round';
+
+        for (const s of seaweeds) {
+            const swayAmount = Math.sin(s.sway) * 15;
+            ctx.strokeStyle = s.color;
+            ctx.lineWidth = s.width;
+
+            if (s.type === 'tall' || s.type === 'wavy') {
+                // Smooth wavy plants
+                ctx.beginPath();
+                ctx.moveTo(s.x, H);
+                for (let i = 0; i <= s.segments; i++) {
+                    const t = i / s.segments;
+                    const y = H - (s.height * t);
+                    const x = s.x + swayAmount * Math.sin(t * Math.PI) * (1 - t);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            } else if (s.type === 'feathery') {
+                // Feathery plants with side leaves
+                ctx.beginPath();
+                ctx.moveTo(s.x, H);
+                for (let i = 0; i <= s.segments; i++) {
+                    const t = i / s.segments;
+                    const y = H - (s.height * t);
+                    const x = s.x + swayAmount * Math.sin(t * Math.PI) * (1 - t);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+
+                    // Add small side leaves
+                    if (i > 0 && i % 2 === 0) {
+                        const leafSize = 5 + (1 - t) * 3;
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x - leafSize, y - leafSize / 2);
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x + leafSize, y - leafSize / 2);
+                    }
+                }
+                ctx.stroke();
+            } else if (s.type === 'bushy') {
+                // Bushy foreground plants
+                for (let j = 0; j < 3; j++) {
+                    ctx.beginPath();
+                    const offset = (j - 1) * 8;
+                    ctx.moveTo(s.x + offset, H);
+                    for (let i = 0; i <= s.segments; i++) {
+                        const t = i / s.segments;
+                        const y = H - (s.height * t);
+                        const x = s.x + offset + swayAmount * 0.5 * Math.sin(t * Math.PI + j) * (1 - t);
+                        ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                }
+            }
+        }
+        ctx.restore();
+
+        // Bubbles - with variable opacity
+        ctx.save();
+        for (const b of bubbles) {
+            ctx.globalAlpha = b.opacity;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bubble highlight
+            ctx.globalAlpha = b.opacity * 1.2;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.beginPath();
+            ctx.arc(b.x - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+
 
         // Fishes
         for (const f of fishes){

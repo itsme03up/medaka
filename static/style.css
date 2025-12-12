@@ -1,10 +1,12 @@
 :root {
-    --bg-color: #121212;
-    --card-bg: #1e1e1e;
-    --text-color: #e0e0e0;
-    --accent-color: #bb86fc;
-    --secondary-color: #03dac6;
-    --danger-color: #cf6679;
+    --bg-color: #D4E157;  /* Vivid lime-yellow background */
+    --card-bg: #FFFDE7;   /* Very light yellow-lime for cards (high contrast) */
+    --text-color: #000000;  /* Pure black for maximum readability */
+    --accent-color: #F9A825;  /* Darker yellow for better contrast */
+    --secondary-color: #827717;  /* Dark olive green for links */
+    --danger-color: #D84315;  /* Deep red-orange for delete */
+    --border-color: #9E9D24;  /* Strong olive border */
+    --input-bg: #FFFFFF;  /* Pure white for inputs */
 }
 
 body {
@@ -21,7 +23,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-color);
 }
 
 header h1 a {
@@ -41,7 +43,7 @@ main {
     padding: 1.5rem;
     border-radius: 8px;
     margin-bottom: 2rem;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
 }
 
 .charts-grid {
@@ -70,7 +72,7 @@ main {
     background-color: var(--card-bg);
     padding: 1.5rem;
     border-radius: 8px;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
     transition: transform 0.2s;
 }
 
@@ -141,7 +143,7 @@ main {
     background-color: var(--card-bg);
     padding: 1.5rem;
     border-radius: 8px;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
 }
@@ -151,7 +153,7 @@ main {
     background-color: var(--card-bg);
     padding: 1.5rem;
     border-radius: 8px;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     gap: 1rem;
